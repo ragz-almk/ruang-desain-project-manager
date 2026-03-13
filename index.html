@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArchiManage</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div class="app-container">
+        <div id="mobile-overlay" class="mobile-overlay hidden"></div>
+
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h1 class="logo"><i data-lucide="folder-kanban" class="text-blue"></i> ArchiManage</h1>
+                <button id="close-mobile-menu" class="mobile-only icon-btn"><i data-lucide="x"></i></button>
+            </div>
+            <nav class="sidebar-nav">
+                <button class="nav-btn active" data-target="dashboard">
+                    <i data-lucide="layout-dashboard"></i> Dashboard Utama
+                </button>
+                <button class="nav-btn" data-target="directory">
+                    <i data-lucide="folder-kanban"></i> Direktori Proyek
+                </button>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="avatar">PR</div>
+                <div class="user-info">
+                    <p class="user-name">Principal Architect</p>
+                    <p class="user-role">Studio Admin</p>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button id="open-mobile-menu" class="mobile-only icon-btn"><i data-lucide="menu"></i></button>
+                    <h1 class="mobile-logo mobile-only">ArchiManage</h1>
+                </div>
+                <div class="search-bar desktop-only">
+                    <i data-lucide="search"></i>
+                    <input type="text" placeholder="Cari proyek, tugas, atau file...">
+                </div>
+                <div class="topbar-right">
+                    <button class="icon-btn mobile-only"><i data-lucide="search"></i></button>
+                    <button class="icon-btn notification-btn">
+                        <i data-lucide="bell"></i>
+                        <span class="badge"></span>
+                    </button>
+                </div>
+            </header>
+
+            <div id="view-container" class="view-container">
+                </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
