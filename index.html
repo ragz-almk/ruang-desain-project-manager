@@ -3,60 +3,285 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ArchiManage</title>
-    <link rel="stylesheet" href="style.css">
+    <title>ArchiManage - Vanilla JS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Sembunyikan scrollbar untuk area tab */
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
 </head>
-<body>
-    <div class="app-container">
-        <div id="mobile-overlay" class="mobile-overlay hidden"></div>
+<body class="flex h-screen bg-slate-50 text-slate-800 font-sans overflow-hidden">
 
-        <aside id="sidebar" class="sidebar">
-            <div class="sidebar-header">
-                <h1 class="logo"><i data-lucide="folder-kanban" class="text-blue"></i> ArchiManage</h1>
-                <button id="close-mobile-menu" class="mobile-only icon-btn"><i data-lucide="x"></i></button>
-            </div>
-            <nav class="sidebar-nav">
-                <button class="nav-btn active" data-target="dashboard">
-                    <i data-lucide="layout-dashboard"></i> Dashboard Utama
-                </button>
-                <button class="nav-btn" data-target="directory">
-                    <i data-lucide="folder-kanban"></i> Direktori Proyek
-                </button>
-            </nav>
-            <div class="sidebar-footer">
-                <div class="avatar">PR</div>
-                <div class="user-info">
-                    <p class="user-name">Principal Architect</p>
-                    <p class="user-role">Studio Admin</p>
-                </div>
-            </div>
-        </aside>
+    <div id="mobile-overlay" class="fixed inset-0 bg-slate-900/50 z-40 hidden md:hidden transition-opacity" onclick="toggleMobileMenu()"></div>
 
-        <main class="main-content">
-            <header class="topbar">
-                <div class="topbar-left">
-                    <button id="open-mobile-menu" class="mobile-only icon-btn"><i data-lucide="menu"></i></button>
-                    <h1 class="mobile-logo mobile-only">ArchiManage</h1>
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 bg-slate-900 text-slate-300 flex flex-col transform -translate-x-full transition-transform duration-300 ease-in-out md:relative md:w-64 md:translate-x-0">
+        <div class="p-6 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-white tracking-wider flex items-center gap-2">
+                <i data-lucide="folder-kanban" class="text-blue-500"></i> ArchiManage
+            </h1>
+            <button class="md:hidden text-slate-400 hover:text-white" onclick="toggleMobileMenu()">
+                <i data-lucide="x"></i>
+            </button>
+        </div>
+        
+        <nav class="flex-1 px-4 space-y-2 overflow-y-auto">
+            <button onclick="navigateTo('dashboard')" id="nav-dashboard" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors bg-blue-600 text-white">
+                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                <span>Dashboard Utama</span>
+            </button>
+            <button onclick="navigateTo('directory')" id="nav-directory" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors hover:bg-slate-800 hover:text-white">
+                <i data-lucide="folder-kanban" class="w-5 h-5"></i>
+                <span>Direktori Proyek</span>
+            </button>
+        </nav>
+        
+        <div class="p-4 border-t border-slate-800 shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-white font-bold shrink-0">PR</div>
+                <div class="overflow-hidden">
+                    <p class="text-sm font-medium text-white truncate">Principal Architect</p>
+                    <p class="text-xs text-slate-500 truncate">Studio Admin</p>
                 </div>
-                <div class="search-bar desktop-only">
-                    <i data-lucide="search"></i>
-                    <input type="text" placeholder="Cari proyek, tugas, atau file...">
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col h-screen overflow-hidden w-full">
+        
+        <header class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-4 md:px-6 shrink-0 z-10">
+            <div class="flex items-center gap-3">
+                <button class="md:hidden p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors" onclick="toggleMobileMenu()">
+                    <i data-lucide="menu"></i>
+                </button>
+                <h1 class="text-xl font-bold text-slate-900 md:hidden">ArchiManage</h1>
+            </div>
+            
+            <div class="hidden md:flex items-center bg-slate-100 rounded-lg px-3 py-2 w-96">
+                <i data-lucide="search" class="text-slate-400 w-[18px] h-[18px] shrink-0"></i>
+                <input type="text" placeholder="Cari proyek, tugas, atau file..." class="bg-transparent border-none outline-none ml-2 w-full text-sm" />
+            </div>
+            
+            <div class="flex items-center gap-2 md:gap-4">
+                <button class="md:hidden relative p-2 text-slate-400 hover:bg-slate-100 rounded-full transition-colors">
+                    <i data-lucide="search" class="w-5 h-5"></i>
+                </button>
+                <button class="relative p-2 text-slate-400 hover:bg-slate-100 rounded-full transition-colors">
+                    <i data-lucide="bell" class="w-5 h-5"></i>
+                    <span class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+                </button>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-6 bg-slate-50 relative">
+            
+            <div id="view-dashboard" class="space-y-6 max-w-7xl mx-auto block">
+                <div>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-900">Selamat datang kembali!</h2>
+                    <p class="text-sm md:text-base text-slate-500">Berikut adalah ringkasan aktivitas studio Anda hari ini.</p>
                 </div>
-                <div class="topbar-right">
-                    <button class="icon-btn mobile-only"><i data-lucide="search"></i></button>
-                    <button class="icon-btn notification-btn">
-                        <i data-lucide="bell"></i>
-                        <span class="badge"></span>
+                <div id="dashboard-content"></div>
+            </div>
+
+            <div id="view-directory" class="space-y-4 md:space-y-6 max-w-7xl mx-auto hidden">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 md:gap-4">
+                    <div>
+                        <h2 class="text-xl md:text-2xl font-bold text-slate-900">Direktori Proyek</h2>
+                        <p class="text-sm md:text-base text-slate-500">Kelola semua proyek arsitektur studio Anda.</p>
+                    </div>
+                    <button class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 md:py-2 rounded-lg text-sm md:text-base font-medium flex justify-center items-center gap-2 transition-colors">
+                        <i data-lucide="plus" class="w-[18px] h-[18px]"></i> Proyek Baru
                     </button>
                 </div>
-            </header>
+                <div id="directory-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mt-6"></div>
+            </div>
 
-            <div id="view-container" class="view-container">
+        </div>
+    </main>
+
+    <script>
+        // --- MOCK DATA ---
+        const mockProjects = [
+            { id: 1, name: 'Villa Senja', status: 'Ongoing', client: 'Bpk. Budi Santoso', location: 'Ubud, Bali', progress: 65, type: 'Residensial', deadline: '2026-08-15', description: 'Desain villa tropis modern dengan 4 kamar tidur dan kolam renang infinity.' },
+            { id: 2, name: 'Kantor Tech Nusantara', status: 'Completed', client: 'PT. Tech Indo', location: 'SCBD, Jakarta', progress: 100, type: 'Komersial', deadline: '2026-01-10', description: 'Renovasi interior kantor startup 3 lantai dengan konsep open space.' },
+            { id: 3, name: 'Cafe Ruang Seduh', status: 'On Hold', client: 'Ibu Anita', location: 'Dago, Bandung', progress: 30, type: 'Komersial', deadline: '2026-05-20', description: 'Desain arsitektur dan interior kedai kopi industrial.' },
+            { id: 4, name: 'Resort Pantai Mutiara', status: 'Ongoing', client: 'Mutiara Group', location: 'Lombok', progress: 15, type: 'Hospitality', deadline: '2027-02-10', description: 'Masterplan dan desain arsitektur untuk resort bintang 5.' },
+        ];
+
+        const mockTasks = [
+            { id: 1, project: 'Villa Senja', title: 'Revisi Denah Lantai 1', assignee: 'Andi (Drafter)', due: 'Hari ini', status: 'pending' },
+            { id: 2, project: 'Resort Pantai Mutiara', title: 'Rapat Konsep Fasad', assignee: 'Siska (Principal)', due: 'Besok', status: 'pending' },
+            { id: 3, project: 'Cafe Ruang Seduh', title: 'Submit RAB Preliminary', assignee: 'Budi (QS)', due: 'Tertunda', status: 'overdue' },
+        ];
+
+        const mockActivities = [
+            { id: 1, text: 'Andi mengunggah file CAD terbaru', project: 'Villa Senja', time: '2 jam yang lalu' },
+            { id: 2, text: 'Klien menyetujui Moodboard Interior', project: 'Kantor Tech Nusantara', time: '5 jam yang lalu' },
+            { id: 3, text: 'Tugas "Render Eksterior" selesai', project: 'Resort Pantai Mutiara', time: '1 hari yang lalu' },
+        ];
+
+        // --- STATE & FUNGSI UTAMA ---
+        let currentView = 'dashboard';
+        let isMobileMenuOpen = false;
+
+        function toggleMobileMenu() {
+            isMobileMenuOpen = !isMobileMenuOpen;
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobile-overlay');
+            
+            if (isMobileMenuOpen) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        function navigateTo(view) {
+            currentView = view;
+            if (isMobileMenuOpen) toggleMobileMenu();
+
+            // Sembunyikan semua view
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById('view-directory').classList.add('hidden');
+
+            // Reset warna tombol navigasi
+            document.getElementById('nav-dashboard').className = "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors hover:bg-slate-800 hover:text-white";
+            document.getElementById('nav-directory').className = "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors hover:bg-slate-800 hover:text-white";
+
+            // Tampilkan view yang dipilih dan aktifkan warna tombol
+            if(view === 'dashboard') {
+                document.getElementById('view-dashboard').classList.remove('hidden');
+                document.getElementById('nav-dashboard').className = "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors bg-blue-600 text-white";
+            } else if(view === 'directory') {
+                document.getElementById('view-directory').classList.remove('hidden');
+                document.getElementById('nav-directory').className = "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors bg-blue-600 text-white";
+                renderDirectory(); // Render ulang jika dibutuhkan
+            }
+            
+            // Re-inisialisasi ikon lucide untuk elemen yang baru ditampilkan
+            lucide.createIcons();
+        }
+
+        // --- RENDER FUNCTIONS ---
+        function renderDashboard() {
+            const container = document.getElementById('dashboard-content');
+            
+            // Tugas HTML
+            let tasksHTML = mockTasks.map(task => `
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 md:p-4 rounded-lg border border-slate-100 bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer gap-2 sm:gap-4">
+                    <div class="flex items-start gap-3">
+                        <div class="mt-1 w-3.5 h-3.5 shrink-0 rounded-full border-2 ${task.status === 'overdue' ? 'border-red-500' : 'border-amber-500'}"></div>
+                        <div>
+                            <p class="text-sm md:text-base font-semibold text-slate-900 leading-tight">${task.title}</p>
+                            <p class="text-xs md:text-sm text-slate-500 mt-0.5">${task.project} • ${task.assignee}</p>
+                        </div>
+                    </div>
+                    <div class="ml-6 sm:ml-0">
+                        <span class="text-[10px] md:text-xs font-medium px-2 py-1 rounded-full whitespace-nowrap ${task.status === 'overdue' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}">
+                            ${task.due}
+                        </span>
+                    </div>
                 </div>
-        </main>
-    </div>
+            `).join('');
 
-    <script src="script.js"></script>
+            // Aktivitas HTML
+            let activitiesHTML = mockActivities.map(act => `
+                <div class="relative pl-5 md:pl-6 border-l-2 border-slate-100 last:border-transparent">
+                    <div class="absolute -left-[5px] top-1.5 w-2 h-2 rounded-full bg-blue-500"></div>
+                    <p class="text-xs md:text-sm font-medium text-slate-800 leading-snug">${act.text}</p>
+                    <div class="flex flex-wrap items-center gap-1 md:gap-2 mt-1">
+                        <span class="text-[10px] md:text-xs text-blue-600 font-medium">${act.project}</span>
+                        <span class="text-[10px] md:text-xs text-slate-400">• ${act.time}</span>
+                    </div>
+                </div>
+            `).join('');
+
+            container.innerHTML = `
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mt-6">
+                    <div class="bg-white p-4 md:p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-3 md:gap-4">
+                        <div class="bg-blue-500 p-2 md:p-3 rounded-lg text-white shrink-0"><i data-lucide="folder-kanban" class="w-5 h-5 md:w-6 md:h-6"></i></div>
+                        <div><p class="text-slate-500 text-xs md:text-sm font-medium">Total Proyek</p><p class="text-xl md:text-2xl font-bold text-slate-900">12</p></div>
+                    </div>
+                    <div class="bg-white p-4 md:p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-3 md:gap-4">
+                        <div class="bg-amber-500 p-2 md:p-3 rounded-lg text-white shrink-0"><i data-lucide="clock" class="w-5 h-5 md:w-6 md:h-6"></i></div>
+                        <div><p class="text-slate-500 text-xs md:text-sm font-medium">Berjalan</p><p class="text-xl md:text-2xl font-bold text-slate-900">5</p></div>
+                    </div>
+                    <div class="bg-white p-4 md:p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-3 md:gap-4">
+                        <div class="bg-emerald-500 p-2 md:p-3 rounded-lg text-white shrink-0"><i data-lucide="check-circle-2" class="w-5 h-5 md:w-6 md:h-6"></i></div>
+                        <div><p class="text-slate-500 text-xs md:text-sm font-medium">Selesai</p><p class="text-xl md:text-2xl font-bold text-slate-900">6</p></div>
+                    </div>
+                    <div class="bg-white p-4 md:p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-3 md:gap-4">
+                        <div class="bg-red-500 p-2 md:p-3 rounded-lg text-white shrink-0"><i data-lucide="alert-circle" class="w-5 h-5 md:w-6 md:h-6"></i></div>
+                        <div><p class="text-slate-500 text-xs md:text-sm font-medium">Tertunda</p><p class="text-xl md:text-2xl font-bold text-slate-900">1</p></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+                    <div class="lg:col-span-2 bg-white border border-slate-200 rounded-xl shadow-sm p-4 md:p-6">
+                        <div class="flex justify-between items-center mb-4 md:mb-6">
+                            <h3 class="text-base md:text-lg font-bold text-slate-900">Tugas Mendesak</h3>
+                            <button class="text-xs md:text-sm text-blue-600 font-medium hover:underline">Lihat Semua</button>
+                        </div>
+                        <div class="space-y-3 md:space-y-4">${tasksHTML}</div>
+                    </div>
+                    <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-4 md:p-6">
+                        <h3 class="text-base md:text-lg font-bold text-slate-900 mb-4 md:mb-6">Aktivitas Terbaru</h3>
+                        <div class="space-y-5 md:space-y-6">${activitiesHTML}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderDirectory() {
+            const grid = document.getElementById('directory-grid');
+            grid.innerHTML = mockProjects.map(project => {
+                let statusClass = project.status === 'Ongoing' ? 'bg-blue-100 text-blue-700' : project.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700';
+                let progressClass = project.progress === 100 ? 'bg-emerald-500' : 'bg-blue-500';
+
+                return `
+                <div class="bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer group flex flex-col" onclick="alert('Klik Proyek: ${project.name}')">
+                    <div class="p-4 md:p-5 flex-1">
+                        <div class="flex justify-between items-start mb-2 md:mb-3">
+                            <span class="text-[10px] md:text-xs font-bold px-2 py-1 rounded-md ${statusClass}">${project.status}</span>
+                            <button class="text-slate-400 hover:text-slate-600 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity p-1 -mr-1">
+                                <i data-lucide="more-vertical" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                        <h3 class="text-base md:text-lg font-bold text-slate-900 mb-1 leading-tight">${project.name}</h3>
+                        <p class="text-xs md:text-sm text-slate-500 mb-3 md:mb-4 line-clamp-2">${project.description}</p>
+                        <div class="space-y-1.5 md:space-y-2 mb-2">
+                            <div class="flex items-center gap-2 text-xs md:text-sm text-slate-600">
+                                <i data-lucide="user" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i> <span class="truncate">${project.client}</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-xs md:text-sm text-slate-600">
+                                <i data-lucide="map-pin" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i> <span class="truncate">${project.location}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="px-4 md:px-5 py-3 md:py-4 border-t border-slate-100 bg-slate-50/50 rounded-b-xl">
+                        <div class="flex justify-between items-center mb-1.5">
+                            <span class="text-[10px] md:text-xs font-medium text-slate-500">Progres</span>
+                            <span class="text-[10px] md:text-xs font-bold text-slate-700">${project.progress}%</span>
+                        </div>
+                        <div class="w-full bg-slate-200 rounded-full h-1.5">
+                            <div class="h-1.5 rounded-full ${progressClass}" style="width: ${project.progress}%"></div>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        // --- INISIALISASI ---
+        document.addEventListener('DOMContentLoaded', () => {
+            renderDashboard();
+            renderDirectory();
+            // Inisialisasi ikon dari Lucide
+            lucide.createIcons();
+        });
+    </script>
 </body>
 </html>
