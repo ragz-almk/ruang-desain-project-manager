@@ -1,282 +1,296 @@
-// --- MOCK DATA ---
-const mockProjects = [
-    { id: 1, name: 'Villa Senja', status: 'Ongoing', client: 'Bpk. Budi Santoso', location: 'Ubud, Bali', progress: 65, type: 'Residensial', deadline: '2026-08-15', description: 'Desain villa tropis modern dengan 4 kamar tidur dan kolam renang infinity.' },
-    { id: 2, name: 'Kantor Tech Nusantara', status: 'Completed', client: 'PT. Tech Indo', location: 'SCBD, Jakarta', progress: 100, type: 'Komersial', deadline: '2026-01-10', description: 'Renovasi interior kantor startup 3 lantai dengan konsep open space.' },
-];
+// --- UPDATE FUNGSI NAVIGASI & DIRECTORY ---
+        
+        // Ganti fungsi navigateTo yang lama dengan ini
+        function navigateTo(view) {
+            currentView = view;
+            if (isMobileMenuOpen) toggleMobileMenu();
 
-const mockStats = [
-    { label: 'Total Proyek', value: '12', icon: 'folder-kanban', color: 'bg-blue' },
-    { label: 'Berjalan', value: '5', icon: 'clock', color: 'bg-amber' },
-    { label: 'Selesai', value: '6', icon: 'check-circle-2', color: 'bg-emerald' },
-];
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById('view-directory').classList.add('hidden');
+            document.getElementById('view-project-detail').classList.add('hidden');
+            document.getElementById('view-project-detail').classList.remove('flex'); // Kembalikan ke display block/hidden standar
 
-// --- STATE MANAGEMENT ---
-let state = {
-    currentView: 'dashboard', // 'dashboard', 'directory', 'project_detail'
-    selectedProject: null,
-    activeTab: 'overview', // 'overview', 'spatial', dll
-    zones: [
-        {
-            id: 1, title: 'Zona Publik', circulationPercent: 20,
-            rooms: [
-                { id: 1, room: 'Ruang Keluarga', capacity: '6-8', area: '45', needs: 'Pencahayaan alami', relations: 'Dapur' }
-            ]
+            document.getElementById('nav-dashboard').className = "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors hover:bg-slate-800 hover:text-white";
+            document.getElementById('nav-directory').className = "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors hover:bg-slate-800 hover:text-white";
+
+            if(view === 'dashboard') {
+                document.getElementById('view-dashboard').classList.remove('hidden');
+                document.getElementById('nav-dashboard').className = "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors bg-blue-600 text-white";
+            } else if(view === 'directory') {
+                document.getElementById('view-directory').classList.remove('hidden');
+                document.getElementById('nav-directory').className = "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors bg-blue-600 text-white";
+            }
+            lucide.createIcons();
         }
-    ]
-};
 
-// --- CORE FUNCTIONS ---
-function render() {
-    const container = document.getElementById('view-container');
-    container.innerHTML = ''; // Bersihkan view sebelumnya
+        // Ganti fungsi renderDirectory yang lama dengan ini agar card bisa di klik
+        function renderDirectory() {
+            const grid = document.getElementById('directory-grid');
+            grid.innerHTML = mockProjects.map(project => {
+                let statusClass = project.status === 'Ongoing' ? 'bg-blue-100 text-blue-700' : project.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700';
+                let progressClass = project.progress === 100 ? 'bg-emerald-500' : 'bg-blue-500';
 
-    if (state.currentView === 'dashboard') {
-        container.innerHTML = createDashboardHTML();
-    } else if (state.currentView === 'directory') {
-        container.innerHTML = createDirectoryHTML();
-    } else if (state.currentView === 'project_detail') {
-        container.innerHTML = createProjectDetailHTML();
-    }
+                // Perhatikan: onclick="openProjectDetail(${project.id})"
+                return `
+                <div class="bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer group flex flex-col" onclick="openProjectDetail(${project.id})">
+                    <div class="p-4 md:p-5 flex-1">
+                        <div class="flex justify-between items-start mb-2 md:mb-3">
+                            <span class="text-[10px] md:text-xs font-bold px-2 py-1 rounded-md ${statusClass}">${project.status}</span>
+                            <button class="text-slate-400 hover:text-slate-600 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity p-1 -mr-1">
+                                <i data-lucide="more-vertical" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                        <h3 class="text-base md:text-lg font-bold text-slate-900 mb-1 leading-tight">${project.name}</h3>
+                        <p class="text-xs md:text-sm text-slate-500 mb-3 md:mb-4 line-clamp-2">${project.description}</p>
+                        <div class="space-y-1.5 md:space-y-2 mb-2">
+                            <div class="flex items-center gap-2 text-xs md:text-sm text-slate-600">
+                                <i data-lucide="user" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i> <span class="truncate">${project.client}</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-xs md:text-sm text-slate-600">
+                                <i data-lucide="map-pin" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i> <span class="truncate">${project.location}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="px-4 md:px-5 py-3 md:py-4 border-t border-slate-100 bg-slate-50/50 rounded-b-xl">
+                        <div class="flex justify-between items-center mb-1.5">
+                            <span class="text-[10px] md:text-xs font-medium text-slate-500">Progres</span>
+                            <span class="text-[10px] md:text-xs font-bold text-slate-700">${project.progress}%</span>
+                        </div>
+                        <div class="w-full bg-slate-200 rounded-full h-1.5">
+                            <div class="h-1.5 rounded-full ${progressClass}" style="width: ${project.progress}%"></div>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
 
-    // Eksekusi fungsi tambahan setelah render (seperti attach event listener)
-    attachDynamicEventListeners();
-    lucide.createIcons(); // Perbarui ikon
-}
+        // --- PROJECT DETAIL LOGIC ---
+        let currentProject = null;
+        let activeTab = 'overview';
+        
+        // Data State untuk Program Ruang (Tabel Dinamis)
+        let spatialZones = [
+            { id: 1, title: 'Zona Publik', circulationPercent: 20, rooms: [ { id: 1, room: 'Ruang Keluarga', capacity: '6-8', area: '45', needs: 'Pencahayaan alami', relations: 'Dapur' } ] },
+            { id: 2, title: 'Zona Privat', circulationPercent: 15, rooms: [ { id: 2, room: 'Kamar Tidur Utama', capacity: '2', area: '30', needs: 'Kedap suara', relations: 'KM Utama' } ] }
+        ];
 
-function navigateTo(view, projectId = null) {
-    state.currentView = view;
-    if (projectId) {
-        state.selectedProject = mockProjects.find(p => p.id === projectId);
-        state.activeTab = 'overview';
-    }
-    
-    // Update tombol sidebar aktif
-    document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.target === view || (view === 'project_detail' && btn.dataset.target === 'directory'));
-    });
-    
-    render();
-}
+        const tabs = [
+            { id: 'overview', label: 'Ikhtisar', icon: 'file-text' },
+            { id: 'tasks', label: 'Tugas & Linimasa', icon: 'list-todo' },
+            { id: 'spatial', label: 'Program Ruang', icon: 'grid' },
+            { id: 'concept', label: 'Konsep', icon: 'image' },
+            { id: 'vault', label: 'Berkas', icon: 'hard-drive' },
+        ];
 
-function setTab(tabId) {
-    state.activeTab = tabId;
-    render();
-}
+        function openProjectDetail(projectId) {
+            currentProject = mockProjects.find(p => p.id === projectId);
+            if(!currentProject) return;
 
-// --- HTML GENERATORS ---
-function createDashboardHTML() {
-    const statsHTML = mockStats.map(stat => `
-        <div class="card stat-box">
-            <div class="stat-icon ${stat.color}"><i data-lucide="${stat.icon}"></i></div>
-            <div>
-                <p style="font-size: 0.875rem; color: var(--slate-500);">${stat.label}</p>
-                <p style="font-size: 1.5rem; font-weight: bold;">${stat.value}</p>
-            </div>
-        </div>
-    `).join('');
-
-    return `
-        <div style="margin-bottom: 24px;">
-            <h2>Selamat datang kembali!</h2>
-            <p style="color: var(--slate-500)">Berikut adalah ringkasan aktivitas studio Anda hari ini.</p>
-        </div>
-        <div class="grid-4">${statsHTML}</div>
-    `;
-}
-
-function createDirectoryHTML() {
-    const projectsHTML = mockProjects.map(project => `
-        <div class="card project-card" onclick="navigateTo('project_detail', ${project.id})">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                <span class="tag ${project.status === 'Ongoing' ? 'ongoing' : 'completed'}">${project.status}</span>
-                <i data-lucide="more-vertical" style="color: var(--slate-400)"></i>
-            </div>
-            <h3>${project.name}</h3>
-            <p style="color: var(--slate-500); font-size: 0.875rem; margin: 12px 0;">${project.description}</p>
+            // Update UI Header
+            document.getElementById('pd-title').innerText = currentProject.name;
+            document.getElementById('pd-subtitle').innerText = `${currentProject.type} • ${currentProject.location}`;
             
-            <div style="margin-top: auto; padding-top: 16px; border-top: 1px solid var(--slate-100);">
-                <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 8px;">
-                    <span>Progres</span>
-                    <strong>${project.progress}%</strong>
+            const statusBadge = document.getElementById('pd-status');
+            statusBadge.innerText = currentProject.status;
+            statusBadge.className = `text-[10px] md:text-xs font-bold px-2 py-0.5 rounded-md ${currentProject.status === 'Ongoing' ? 'bg-blue-100 text-blue-700' : currentProject.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'}`;
+
+            // Reset tab ke overview dan tampilkan halaman
+            switchTab('overview');
+            
+            // Sembunyikan view lain dan tampilkan detail (harus class 'flex' bukan 'block' agar layout kolomnya rapi)
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById('view-directory').classList.add('hidden');
+            const pdView = document.getElementById('view-project-detail');
+            pdView.classList.remove('hidden');
+            pdView.classList.add('flex');
+            
+            // Set navigasi direktori aktif
+            document.getElementById('nav-directory').className = "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors bg-blue-600 text-white";
+            document.getElementById('nav-dashboard').className = "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors hover:bg-slate-800 hover:text-white";
+        }
+
+        function switchTab(tabId) {
+            activeTab = tabId;
+            
+            // Render tombol tab
+            const tabNav = document.getElementById('tab-navigation');
+            tabNav.innerHTML = tabs.map(tab => {
+                const isActive = activeTab === tab.id;
+                const baseClass = "flex items-center gap-1.5 md:gap-2 px-3 md:px-5 py-2.5 md:py-3 border-b-2 font-medium text-xs md:text-sm whitespace-nowrap transition-colors shrink-0";
+                const activeClass = isActive ? "border-blue-600 text-blue-600 bg-blue-50/50" : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300";
+                return `<button onclick="switchTab('${tab.id}')" class="${baseClass} ${activeClass}"><i data-lucide="${tab.icon}" class="w-4 h-4 md:w-[18px] md:h-[18px]"></i> ${tab.label}</button>`;
+            }).join('');
+
+            // Sembunyikan semua tab content
+            tabs.forEach(tab => {
+                document.getElementById(`tab-${tab.id}`).classList.add('hidden');
+            });
+
+            // Tampilkan tab terpilih dan panggil fungsi render spesifiknya
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            
+            if(tabId === 'overview') renderTabOverview();
+            if(tabId === 'spatial') renderTabSpatial();
+            // (Untuk efisiensi demonstrasi, Tasks, Concept, dan Vault bisa ditambahkan HTML statisnya nanti di dalam div masing-masing)
+
+            lucide.createIcons();
+        }
+
+        function renderTabOverview() {
+            const container = document.getElementById('tab-overview');
+            container.innerHTML = `
+                <div class="space-y-6 md:space-y-8">
+                    <div>
+                        <h3 class="text-base md:text-lg font-bold text-slate-900 mb-2">Deskripsi Proyek</h3>
+                        <p class="text-sm md:text-base text-slate-600 leading-relaxed max-w-4xl">${currentProject.description} Proyek ini menargetkan efisiensi ruang maksimal dengan estetika yang sesuai dengan preferensi klien.</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
+                        <div class="bg-slate-50 p-4 md:p-5 rounded-xl border border-slate-100">
+                            <h4 class="font-semibold text-slate-900 mb-3 md:mb-4 flex items-center gap-2"><i data-lucide="user" class="w-4 h-4 text-slate-400"></i> Informasi Klien</h4>
+                            <div class="space-y-3">
+                                <div><p class="text-[10px] md:text-xs text-slate-400 font-medium uppercase tracking-wider">Nama Klien / Perusahaan</p><p class="text-sm md:text-base text-slate-800 font-medium">${currentProject.client}</p></div>
+                                <div><p class="text-[10px] md:text-xs text-slate-400 font-medium uppercase tracking-wider">Kontak Utama</p><p class="text-sm md:text-base text-slate-800 font-medium">0812-3456-7890</p></div>
+                            </div>
+                        </div>
+                        <div class="bg-slate-50 p-4 md:p-5 rounded-xl border border-slate-100">
+                            <h4 class="font-semibold text-slate-900 mb-3 md:mb-4 flex items-center gap-2"><i data-lucide="map-pin" class="w-4 h-4 text-slate-400"></i> Detail Lokasi & Waktu</h4>
+                            <div class="space-y-3">
+                                <div><p class="text-[10px] md:text-xs text-slate-400 font-medium uppercase tracking-wider">Alamat Tapak</p><p class="text-sm md:text-base text-slate-800 font-medium">${currentProject.location}</p></div>
+                                <div><p class="text-[10px] md:text-xs text-slate-400 font-medium uppercase tracking-wider">Tenggat Waktu Utama</p><p class="text-sm md:text-base text-slate-800 font-medium">${currentProject.deadline}</p></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div style="width: 100%; background: var(--slate-200); border-radius: 8px; height: 6px;">
-                    <div style="width: ${project.progress}%; height: 100%; background: var(--blue-500); border-radius: 8px;"></div>
+            `;
+        }
+
+        // --- SPATIAL TAB LOGIC (DYNAMIC TABLE) ---
+        function renderTabSpatial() {
+            const container = document.getElementById('tab-spatial');
+            
+            let zonesHTML = spatialZones.map(zone => {
+                const subTotal = zone.rooms.reduce((sum, room) => sum + (parseFloat(room.area) || 0), 0);
+                const sirkulasiArea = subTotal * (parseFloat(zone.circulationPercent) || 0) / 100;
+                const totalArea = subTotal + sirkulasiArea;
+
+                let roomsHTML = zone.rooms.map(item => `
+                    <tr class="hover:bg-slate-50/30 transition-colors">
+                        <td class="px-4 py-2"><input type="text" value="${item.room}" oninput="updateRoomField(${zone.id}, ${item.id}, 'room', this.value)" class="w-full bg-transparent border-none outline-none focus:bg-white focus:ring-1 focus:ring-slate-200 rounded px-1" placeholder="Nama..." /></td>
+                        <td class="px-4 py-2"><div class="flex items-center gap-1"><input type="text" value="${item.capacity}" oninput="updateRoomField(${zone.id}, ${item.id}, 'capacity', this.value)" class="w-12 bg-transparent border-none outline-none focus:bg-white focus:ring-1 focus:ring-slate-200 rounded px-1" placeholder="0" /><span class="text-xs text-slate-400">org</span></div></td>
+                        <td class="px-4 py-2"><input type="number" value="${item.area}" oninput="updateRoomField(${zone.id}, ${item.id}, 'area', this.value)" class="w-16 bg-transparent border-none outline-none focus:bg-white focus:ring-1 focus:ring-slate-200 rounded px-1" placeholder="0" /></td>
+                        <td class="px-4 py-2"><input type="text" value="${item.needs}" oninput="updateRoomField(${zone.id}, ${item.id}, 'needs', this.value)" class="w-full bg-transparent border-none outline-none focus:bg-white focus:ring-1 focus:ring-slate-200 rounded px-1" placeholder="-" /></td>
+                        <td class="px-4 py-2"><input type="text" value="${item.relations}" oninput="updateRoomField(${zone.id}, ${item.id}, 'relations', this.value)" class="w-full bg-transparent border-none outline-none focus:bg-white focus:ring-1 focus:ring-slate-200 rounded px-1" placeholder="-" /></td>
+                        <td class="px-4 py-2 text-center"><button onclick="removeRoom(${zone.id}, ${item.id})" class="text-slate-400 hover:text-red-500 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td>
+                    </tr>
+                `).join('');
+
+                return `
+                <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm mb-8">
+                    <div class="bg-slate-50 px-4 py-3 border-b border-slate-200 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+                        <div class="flex-1 flex items-center">
+                            <input type="text" value="${zone.title}" oninput="updateZoneField(${zone.id}, 'title', this.value)" class="font-bold text-slate-800 text-sm md:text-base bg-transparent border-none outline-none focus:ring-2 focus:ring-blue-100 rounded px-1 w-full max-w-xs" placeholder="Nama Zona..." />
+                        </div>
+                        <button onclick="addRoom(${zone.id})" class="text-xs bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-medium px-3 py-1.5 rounded-md transition-colors flex items-center gap-1 w-fit">
+                            <i data-lucide="plus" class="w-3.5 h-3.5"></i> Baris Baru
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs md:text-sm text-slate-600 min-w-[700px]">
+                            <thead class="bg-slate-50/50 text-slate-500 font-medium border-b border-slate-200">
+                                <tr>
+                                    <th class="px-4 py-2.5 w-[20%]">Nama Ruang</th>
+                                    <th class="px-4 py-2.5 w-[12%]">Kapasitas</th>
+                                    <th class="px-4 py-2.5 w-[12%]">Luasan (m²)</th>
+                                    <th class="px-4 py-2.5 w-[25%]">Kebutuhan Khusus</th>
+                                    <th class="px-4 py-2.5 w-[25%]">Hubungan Ruang</th>
+                                    <th class="px-4 py-2.5 w-[6%] text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                ${roomsHTML}
+                                <tr class="bg-slate-50/50">
+                                    <td colSpan="2" class="px-4 py-2 text-right text-xs font-medium text-slate-500">Subtotal Luasan Ruang:</td>
+                                    <td class="px-4 py-2 font-medium text-slate-700">${subTotal.toFixed(2)} m²</td>
+                                    <td colSpan="3"></td>
+                                </tr>
+                                <tr class="bg-slate-50/50">
+                                    <td colSpan="2" class="px-4 py-2 text-right text-xs font-medium text-slate-500 flex items-center justify-end gap-2">
+                                        <span>Sirkulasi:</span>
+                                        <div class="flex items-center bg-white border border-slate-200 rounded px-2 py-0.5 w-16">
+                                            <input type="number" value="${zone.circulationPercent}" oninput="updateZoneField(${zone.id}, 'circulationPercent', this.value)" class="w-full text-xs text-slate-700 outline-none text-right pr-1" />
+                                            <span class="text-[10px] text-slate-400">%</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-2 font-medium text-slate-500">+${sirkulasiArea.toFixed(2)} m²</td>
+                                    <td colSpan="3"></td>
+                                </tr>
+                                <tr class="bg-slate-50/80 border-t border-slate-200">
+                                    <td colSpan="2" class="px-4 py-3 text-right font-bold text-slate-800">Total Luasan ${zone.title}:</td>
+                                    <td class="px-4 py-3 font-bold text-blue-600 text-base">${totalArea.toFixed(2)} m²</td>
+                                    <td colSpan="3"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>`;
+            }).join('');
+
+            container.innerHTML = `
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
+                    <div><h3 class="text-base md:text-lg font-bold text-slate-900">Program Ruang</h3><p class="text-xs md:text-sm text-slate-500">Estimasi luasan dan kebutuhan fungsi ruangan per zona.</p></div>
+                    <button onclick="addZone()" class="text-xs md:text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-2 w-full sm:w-auto justify-center">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Tambah Zona Baru
+                    </button>
                 </div>
-            </div>
-        </div>
-    `).join('');
+                ${zonesHTML}
+            `;
+            
+            lucide.createIcons();
+        }
 
-    return `
-        <h2>Direktori Proyek</h2>
-        <div class="project-grid">${projectsHTML}</div>
-    `;
-}
+        // --- MANAJEMEN STATE PROGRAM RUANG ---
+        function addZone() {
+            spatialZones.push({ id: Date.now(), title: 'Zona Baru', circulationPercent: 20, rooms: [] });
+            renderTabSpatial();
+        }
 
-function createProjectDetailHTML() {
-    const p = state.selectedProject;
-    
-    // Tab Navigation
-    const tabs = [
-        { id: 'overview', label: 'Ikhtisar', icon: 'file-text' },
-        { id: 'spatial', label: 'Program Ruang', icon: 'grid' }
-    ];
-    
-    const tabsHTML = tabs.map(tab => `
-        <button class="tab-btn ${state.activeTab === tab.id ? 'active' : ''}" onclick="setTab('${tab.id}')">
-            <i data-lucide="${tab.icon}" style="width: 18px;"></i> ${tab.label}
-        </button>
-    `).join('');
+        function addRoom(zoneId) {
+            const zone = spatialZones.find(z => z.id === zoneId);
+            if(zone) {
+                zone.rooms.push({ id: Date.now(), room: '', capacity: '', area: '0', needs: '', relations: '' });
+                renderTabSpatial();
+            }
+        }
 
-    // Tab Content
-    let tabContent = '';
-    if (state.activeTab === 'overview') {
-        tabContent = `
-            <div class="card">
-                <h3>Deskripsi Proyek</h3>
-                <p style="margin-top: 8px; color: var(--slate-600); line-height: 1.6;">${p.description}</p>
-                <hr style="margin: 20px 0; border: 0; border-top: 1px solid var(--slate-200);">
-                <h4>Info Detail</h4>
-                <ul style="list-style: none; margin-top: 12px; color: var(--slate-600);">
-                    <li><strong>Klien:</strong> ${p.client}</li>
-                    <li style="margin-top: 8px;"><strong>Lokasi:</strong> ${p.location}</li>
-                    <li style="margin-top: 8px;"><strong>Deadline:</strong> ${p.deadline}</li>
-                </ul>
-            </div>
-        `;
-    } else if (state.activeTab === 'spatial') {
-        tabContent = renderSpatialTab();
-    }
+        function updateZoneField(zoneId, field, value) {
+            const zone = spatialZones.find(z => z.id === zoneId);
+            if(zone) {
+                zone[field] = value;
+                // Kita gunakan timeout atau re-render langsung untuk update perhitungan m2 
+                renderTabSpatial();
+                
+                // UX Tweak: Fokus kembali ke input setelah render (Karena innerHTML mere-render ulang seluruh elemen)
+                // Ini sedikit sulit di vanilla JS tanpa VDOM, jadi saya menggunakan event oninput yang memicu render penuh.
+                // Jika ingin fokus tidak hilang, di proyek nyata sebaiknya manipulasi DOM per node, bukan innerHTML.
+            }
+        }
 
-    return `
-        <button onclick="navigateTo('directory')" style="background:none; border:none; cursor:pointer; color: var(--slate-500); display: flex; align-items: center; gap: 4px; margin-bottom: 16px;">
-            <i data-lucide="chevron-left"></i> Kembali ke Direktori
-        </button>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-            <div>
-                <h2 style="font-size: 2rem;">${p.name}</h2>
-                <span class="tag ${p.status === 'Ongoing' ? 'ongoing' : 'completed'}">${p.status}</span>
-            </div>
-        </div>
-        <div class="tabs">${tabsHTML}</div>
-        <div>${tabContent}</div>
-    `;
-}
+        function updateRoomField(zoneId, roomId, field, value) {
+            const zone = spatialZones.find(z => z.id === zoneId);
+            if(zone) {
+                const room = zone.rooms.find(r => r.id === roomId);
+                if(room) {
+                    room[field] = value;
+                    if(field === 'area') renderTabSpatial(); // Hanya render ulang penuh jika merubah angka luas/kalkulasi
+                }
+            }
+        }
 
-// Logika Khusus untuk Program Ruang (Spatial)
-function renderSpatialTab() {
-    let zonesHTML = state.zones.map(zone => {
-        let subTotal = zone.rooms.reduce((sum, room) => sum + (parseFloat(room.area) || 0), 0);
-        let sirkulasiArea = subTotal * (parseFloat(zone.circulationPercent) || 0) / 100;
-        let totalArea = subTotal + sirkulasiArea;
-
-        let roomsHTML = zone.rooms.map(room => `
-            <tr>
-                <td><input type="text" value="${room.room}" onchange="updateRoom(${zone.id}, ${room.id}, 'room', this.value)"></td>
-                <td><input type="text" value="${room.capacity}" onchange="updateRoom(${zone.id}, ${room.id}, 'capacity', this.value)"></td>
-                <td><input type="number" value="${room.area}" onchange="updateRoom(${zone.id}, ${room.id}, 'area', this.value)"></td>
-                <td><input type="text" value="${room.needs}" onchange="updateRoom(${zone.id}, ${room.id}, 'needs', this.value)"></td>
-                <td><input type="text" value="${room.relations}" onchange="updateRoom(${zone.id}, ${room.id}, 'relations', this.value)"></td>
-                <td><button onclick="removeRoom(${zone.id}, ${room.id})" style="color: var(--red-500); background: none; border: none; cursor: pointer;"><i data-lucide="trash-2" style="width:16px;"></i></button></td>
-            </tr>
-        `).join('');
-
-        return `
-            <div class="card" style="margin-bottom: 24px; padding: 0; overflow: hidden;">
-                <div style="background: var(--slate-50); padding: 16px; border-bottom: 1px solid var(--slate-200); display: flex; justify-content: space-between; align-items: center;">
-                    <input type="text" value="${zone.title}" onchange="updateZone(${zone.id}, 'title', this.value)" style="font-weight: bold; font-size: 1rem; border: none; background: transparent; outline: none;">
-                    <button class="btn-primary" onclick="addRoom(${zone.id})" style="padding: 6px 12px; font-size: 0.875rem;"><i data-lucide="plus" style="width: 14px;"></i> Baris Baru</button>
-                </div>
-                <div style="overflow-x: auto;">
-                    <table class="spatial-table">
-                        <thead>
-                            <tr>
-                                <th>Nama Ruang</th><th>Kapasitas</th><th>Luas (m²)</th><th>Kebutuhan</th><th>Hubungan</th><th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>${roomsHTML}</tbody>
-                        <tfoot>
-                            <tr style="background: var(--slate-50);">
-                                <td colspan="2" style="text-align: right; color: var(--slate-500);">Sirkulasi (%):</td>
-                                <td><input type="number" value="${zone.circulationPercent}" onchange="updateZone(${zone.id}, 'circulationPercent', this.value)" style="width: 60px; background: white; border: 1px solid var(--slate-200);"></td>
-                                <td colspan="3" style="color: var(--slate-500);">+ ${sirkulasiArea.toFixed(2)} m²</td>
-                            </tr>
-                            <tr style="background: #f8fafc;">
-                                <td colspan="2" style="text-align: right; font-weight: bold;">Total Area:</td>
-                                <td style="font-weight: bold; color: var(--blue-600);">${totalArea.toFixed(2)} m²</td>
-                                <td colspan="3"></td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-            </div>
-        `;
-    }).join('');
-
-    return `
-        <div style="display: flex; justify-content: space-between; margin-bottom: 16px;">
-            <h3>Program Ruang</h3>
-            <button class="btn-primary" onclick="addZone()"><i data-lucide="plus" style="width: 16px;"></i> Tambah Zona</button>
-        </div>
-        ${zonesHTML}
-    `;
-}
-
-// Spatial State Handlers
-function addZone() {
-    state.zones.push({ id: Date.now(), title: 'Zona Baru', circulationPercent: 20, rooms: [] });
-    render();
-}
-function addRoom(zoneId) {
-    const zone = state.zones.find(z => z.id === zoneId);
-    if (zone) zone.rooms.push({ id: Date.now(), room: '', capacity: '', area: '0', needs: '', relations: '' });
-    render();
-}
-function updateZone(zoneId, field, value) {
-    const zone = state.zones.find(z => z.id === zoneId);
-    if (zone) zone[field] = value;
-    render();
-}
-function updateRoom(zoneId, roomId, field, value) {
-    const zone = state.zones.find(z => z.id === zoneId);
-    const room = zone.rooms.find(r => r.id === roomId);
-    if (room) room[field] = value;
-    render();
-}
-function removeRoom(zoneId, roomId) {
-    const zone = state.zones.find(z => z.id === zoneId);
-    if (zone) zone.rooms = zone.rooms.filter(r => r.id !== roomId);
-    render();
-}
-
-// --- SETUP AWAL ---
-function attachDynamicEventListeners() {
-    // Event listener statis (Sidebar Mobile)
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('mobile-overlay');
-    
-    document.getElementById('open-mobile-menu')?.addEventListener('click', () => {
-        sidebar.classList.add('open');
-        overlay.classList.remove('hidden');
-    });
-    
-    document.getElementById('close-mobile-menu')?.addEventListener('click', closeMenu);
-    overlay?.addEventListener('click', closeMenu);
-
-    function closeMenu() {
-        sidebar.classList.remove('open');
-        overlay.classList.add('hidden');
-    }
-
-    // Navigasi Sidebar
-    document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.onclick = (e) => {
-            navigateTo(e.currentTarget.dataset.target);
-            closeMenu();
-        };
-    });
-}
-
-// Inisialisasi Pertama
-document.addEventListener('DOMContentLoaded', () => {
-    render();
-});
+        function removeRoom(zoneId, roomId) {
+            const zone = spatialZones.find(z => z.id === zoneId);
+            if(zone) {
+                zone.rooms = zone.rooms.filter(r => r.id !== roomId);
+                renderTabSpatial();
+            }
+        }
